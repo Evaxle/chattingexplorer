@@ -21,9 +21,6 @@
             width: 400px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        #signup-login, #chat-system {
-            display: none;
-        }
         #message-box {
             height: 200px;
             border: 1px solid #ddd;
@@ -53,23 +50,17 @@
 <body>
 
 <div class="container">
-    <div id="signup-login">
-        <h3>Sign Up / Log In</h3>
-        <input type="text" id="username" placeholder="Username" required>
-        <button onclick="signUp()">Sign Up</button>
-    </div>
+    <h1>Welcome!</h1>
+    <p>Your PIN: <span id="user-pin"></span></p>
+    <input type="text" id="nickname" placeholder="Enter your nickname" required>
+    <button onclick="saveNickname()">Save Nickname</button>
 
-    <div id="chat-system">
-        <h3>Welcome, <span id="current-user"></span>!</h3>
-        <p>Your PIN: <span id="user-pin"></span></p>
-        
-        <input type="text" id="search-pin" placeholder="Enter PIN to find user" required>
-        <button onclick="findUser()">Find User</button>
+    <input type="text" id="search-pin" placeholder="Enter PIN to find user" required>
+    <button onclick="findUser()">Find User</button>
 
-        <div id="message-box"></div>
-        <input type="text" id="message-input" placeholder="Enter your message">
-        <button onclick="sendMessage()">Send</button>
-    </div>
+    <div id="message-box"></div>
+    <input type="text" id="message-input" placeholder="Enter your message">
+    <button onclick="sendMessage()">Send</button>
 </div>
 
 <script src="chat.js"></script>
