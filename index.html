@@ -25,7 +25,7 @@
             height: 200px;
             border: 1px solid #ddd;
             padding: 10px;
-            overflow-y: scroll;
+            overflow-y: auto;
             margin-bottom: 10px;
         }
         input[type="text"], input[type="password"] {
@@ -64,7 +64,7 @@
 </div>
 
 <script>
-    let db;
+let db;
 let currentUserPin;
 
 // Open or create IndexedDB
@@ -90,7 +90,7 @@ request.onerror = function (event) {
 
 // Assign the user a PIN (incremental)
 function assignUserPin() {
-    const transaction = db.transaction(['users'], 'readwrite');
+    const transaction = db.transaction(['users'], 'readonly');
     const userStore = transaction.objectStore('users');
     
     // Count total users to assign a PIN
@@ -171,8 +171,10 @@ function sendMessage() {
     const newMessage = document.createElement('div');
     newMessage.textContent = 'You: ' + message;
     messageBox.appendChild(newMessage);
+    messageBox.scrollTop = messageBox.scrollHeight; // Auto-scroll to the bottom
     document.getElementById('message-input').value = ''; // Clear input
-}</script>
+}
+</script>
 
 </body>
 </html>
