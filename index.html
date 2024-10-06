@@ -1,164 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Chat System</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        #chatBox, #searchForm {
-            margin-bottom: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        #messages {
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .message {
-            margin: 5px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    #chat-box { width: 300px; height: 400px; border: 1px solid #ccc; overflow-y: auto; margin: 20px auto; padding: 10px; }
+    #message-input { width: 80%; padding: 10px; }
+    #send-button { padding: 10px; }
+  </style>
 </head>
 <body>
 
-    <div id="chatBox">
-        <h3>Chat</h3>
-        <div>
-            <span>Your PIN: <strong id="userPin"></strong></span>
-        </div>
-        <input type="text" id="nickname" placeholder="Enter your nickname" required />
-        <div id="messages"></div>
-        <input type="text" id="messageInput" placeholder="Type your message..." required />
-        <button id="sendBtn">Send</button>
-    </div>
+  <div id="chat-box"></div>
 
-    <div id="searchForm">
-        <h3>Search User</h3>
-        <input type="text" id="searchPin" placeholder="Enter PIN to search" required />
-        <button id="searchBtn">Search</button>
-    </div>
+  <input type="text" id="message-input" placeholder="Type your message...">
+  <button id="send-button">Send</button>
 
-    <script>
-        let db, userPin;
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const messageInput = document.getElementById('message-input');
+    const sendButton = document.getElementById('send-button');
 
-        // Initialize IndexedDB
-        function initDB() {
-            const request = indexedDB.open('ChatSystem', 1);
+    const socket = new WebSocket('wss://your-websocket-server-url'); // Replace with your server URL
 
-            request.onupgradeneeded = (event) => {
-                db = event.target.result;
-                db.createObjectStore('users', { keyPath: 'pin' });
-                db.createObjectStore('messages', { keyPath: 'id', autoIncrement: true });
-            };
+    socket.onmessage = function(event) {
+      const message = document.createElement('div');
+      message.textContent = event.data;
+      chatBox.appendChild(message);
+    };
 
-            request.onsuccess = (event) => {
-                db = event.target.result;
-                userPin = generatePin();
-                document.getElementById('userPin').textContent = userPin;
-                loadNickname();
-            };
+    sendButton.onclick = function() {
+      const message = messageInput.value;
+      if (message) {
+        socket.send(message);
+        messageInput.value = '';
+      }
+    };
+  </script>
 
-            request.onerror = (event) => {
-                console.error("Database error: ", event.target.errorCode);
-            };
-        }
-
-        // Generate a random 4-digit PIN
-        function generatePin() {
-            return Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit PIN
-        }
-
-        // Load nickname from IndexedDB
-        function loadNickname() {
-            const transaction = db.transaction(['users'], 'readonly');
-            const store = transaction.objectStore('users');
-            const request = store.get(userPin);
-
-            request.onsuccess = (event) => {
-                const user = event.target.result;
-                if (user) {
-                    document.getElementById('nickname').value = user.nickname;
-                    startChat();
-                }
-            };
-        }
-
-        // Save nickname to IndexedDB
-        function saveNickname(nickname) {
-            const transaction = db.transaction(['users'], 'readwrite');
-            const store = transaction.objectStore('users');
-            const user = { pin: userPin, nickname };
-            const request = store.put(user);
-
-            request.onsuccess = () => {
-                startChat();
-            };
-
-            request.onerror = (event) => {
-                console.error("Add user error: ", event.target.errorCode);
-            };
-        }
-
-        // Search user by PIN
-        function searchUser(pin) {
-            const transaction = db.transaction(['users'], 'readonly');
-            const store = transaction.objectStore('users');
-            const request = store.get(pin);
-
-            request.onsuccess = (event) => {
-                const user = event.target.result;
-                if (user) {
-                    alert(`User found: ${user.nickname}`);
-                } else {
-                    alert('User not found!');
-                }
-            };
-        }
-
-        // Start WebSocket connection
-        function startChat() {
-            const socket = new WebSocket('ws://localhost:8080'); // Ensure a WebSocket server is running at this address
-
-            socket.onopen = () => {
-                console.log('Connected to the WebSocket server.');
-            };
-
-            socket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                const messageElem = document.createElement('div');
-                messageElem.className = 'message';
-                messageElem.textContent = `${message.nickname}: ${message.text}`;
-                document.getElementById('messages').appendChild(messageElem);
-            };
-
-            document.getElementById('sendBtn').onclick = () => {
-                const messageText = document.getElementById('messageInput').value;
-                const nickname = document.getElementById('nickname').value;
-                const message = { pin: userPin, nickname, text: messageText };
-
-                socket.send(JSON.stringify(message)); // Send message via WebSocket
-                document.getElementById('messageInput').value = ''; // Clear input
-            };
-            
-            document.getElementById('searchBtn').onclick = () => {
-                const pin = document.getElementById('searchPin').value;
-                searchUser(pin);
-            };
-        }
-
-        // Load the page
-        window.onload = initDB;
-    </script>
 </body>
 </html>
